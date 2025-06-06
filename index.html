@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Planes de Clase de Música</title>
+    <!-- Tailwind CSS CDN para un estilo rápido y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Un color de fondo suave */
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 1rem; /* Bordes más redondeados */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra más pronunciada */
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem; /* Título más grande */
+            color: #3498db; /* Un azul vibrante */
+        }
+        label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        select, button {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e0;
+            font-size: 1rem;
+            transition: all 0.2s ease-in-out;
+        }
+        select:focus, button:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            border: none;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px); /* Efecto ligero al pasar el ratón */
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        #lessonPlanOutput {
+            margin-top: 2.5rem;
+            padding: 2rem;
+            background-color: #ecf0f1; /* Fondo gris claro para el plan */
+            border-radius: 0.75rem;
+            border: 1px dashed #bdc3c7; /* Borde punteado suave */
+        }
+        .lesson-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-left: 5px solid; /* Borde izquierdo de color para las secciones */
+            border-radius: 0.5rem;
+            background-color: #ffffff; /* Fondo blanco para las secciones */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .lesson-section h3 {
+            margin-top: 0;
+            margin-bottom: 0.75rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+        }
+        .lesson-section h3::before {
+            content: '🎵'; /* Icono musical antes del título */
+            margin-right: 0.5rem;
+            font-size: 1.2em;
+        }
+
+        /* Colores para los bordes de las secciones (similares a la imagen del currículum) */
+        .section-warmup { border-color: #27ae60; } /* Verde para Calentamiento */
+        .section-rhythm { border-color: #e67e22; } /* Naranja para Ritmo */
+        .section-melody { border-color: #9b59b6; } /* Púrpura para Melodía */
+        .section-instrumental { border-color: #34495e; } /* Azul oscuro para Instrumental */
+        .section-movement { border-color: #e74c3c; } /* Rojo para Movimiento */
+        .section-creative { border-color: #f1c40f; } /* Amarillo para Creativo */
+        .section-listening { border-color: #1abc9c; } /* Turquesa para Escucha */
+        .section-closing { border-color: #8e44ad; } /* Violeta para Cierre */
+
+        .section-content ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            padding: 0;
+        }
+        .section-content li {
+            margin-bottom: 0.5rem;
+        }
+        .concept-tag {
+            display: inline-block;
+            background-color: #dbeafe; /* Light blue background */
+            color: #1e40af; /* Dark blue text */
+            padding: 0.2em 0.6em;
+            border-radius: 0.5rem;
+            font-size: 0.85em;
+            margin-right: 0.5rem;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+        .methodology-note {
+            font-style: italic;
+            color: #555;
+            margin-top: 0.75rem;
+            padding-left: 0.5rem;
+            border-left: 3px solid #ccc;
+        }
+        .llm-suggestion {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: #e0f2f7; /* Un azul muy claro */
+            border-left: 4px solid #007bff; /* Un azul más oscuro */
+            border-radius: 0.5rem;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .llm-loading {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generador de Planes de Clase de Música</h1>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-8 justify-center">
+            <div class="flex-1">
+                <label for="ageRange" class="block mb-2 text-gray-700">Rango de Edad:</label>
+                <select id="ageRange" class="w-full">
+                    <option value="preschool">Preescolar (3-5 años)</option>
+                    <option value="1st-grade">1ero Básico (6-7 años)</option>
+                    <option value="2nd-grade">2do Básico (7-8 años)</option>
+                    <option value="3rd-4th-grade">3ro/4to Básico (8-10 años)</option>
+                    <option value="5th-grade">5to Básico (10-11 años)</option>
+                </select>
+            </div>
+            <div class="flex-1">
+                <label for="classDuration" class="block mb-2 text-gray-700">Duración de la Clase:</label>
+                <select id="classDuration" class="w-full">
+                    <option value="30">30 minutos</option>
+                    <option value="45">45 minutos</option>
+                    <option value="60">60 minutos</option>
+                </select>
+            </div>
+            <div class="flex-1 flex items-end">
+                <button id="generatePlanBtn" class="w-full h-auto">Generar Plan de Clase</button>
+            </div>
+        </div>
+
+        <div id="lessonPlanOutput" class="hidden">
+            <!-- El plan de clase generado se insertará aquí -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const generatePlanBtn = document.getElementById('generatePlanBtn');
+            const ageRangeSelect = document.getElementById('ageRange');
+            const classDurationSelect = document.getElementById('classDuration');
+            const lessonPlanOutput = document.getElementById('lessonPlanOutput');
+
+            // Definición del currículum por rango de edad, basada en el PDF proporcionado
+            const curriculum = {
+                'preschool': {
+                    label: 'Preescolar (3-5 años)',
+                    rhythm: ['Sonido/Silencio', 'Largo/Corto', 'Pulso'],
+                    melody: ['Voz hablada/cantada', 'Agudo/Grave', 'Sol-Mi', 'Canon a 2'],
+                    form: ['Igual/Diferente'],
+                    texture: ['Solo/Grupo'],
+                    expression: ['Fuerte/Suave', 'Lento/Rápido'], // 'Fuerte/Suave' del PDF
+                    other: ['Canciones infantiles', 'Percusión en instrumentos de altura indeterminada']
+                },
+                '1st-grade': {
+                    label: '1ero Básico (6-7 años)',
+                    rhythm: ['Pulso', 'Ritmo', 'Compás en 2', 'Negra', 'Corcheas (Ti-ti)', 'Silencio de Negra'], // Añadido 'Silencio de Negra'
+                    melody: ['Voz cantada', 'Sol-Mi-La', 'Canto afinado'], // 'Sol, la, sol, mi' del PDF
+                    form: ['AA', 'AB'],
+                    texture: ['Solo/Grupo', 'Ostinato', 'Bordón'], // Añadido 'Bordón'
+                    expression: ['Forte/Piano', 'Lento/Rápido', 'Acento', 'Repetir signos'], // Añadido 'Repetir signos' y 'Acento'
+                    other: ['Canciones folclóricas', 'Instrumentos Orff', 'Audición'] // Añadido 'Audición'
+                },
+                '2nd-grade': {
+                    label: '2do Básico (7-8 años)',
+                    rhythm: ['Pulso', 'Ritmo', 'Compás en 3', 'Blanca (Taa)', 'Redonda', 'Semicorcheas (Taca-taca)', '4/4'], // Ajustado y añadido del PDF
+                    melody: ['Voces cantadas', 'Do (Re, mi)', 'Escala pentatónica', 'Escala de Do-Fa y Sol', 'Canto afinado'], // Ajustado y añadido del PDF
+                    form: ['AB', 'AAB', 'Frase de 8 tiempos', 'Pregunta y respuesta'], // Ajustado y añadido del PDF
+                    texture: ['Ostinato', 'Bordón', 'Canciones a más de una voz'], // Añadido del PDF
+                    expression: ['Crescendo/Decrescendo', 'Allegro/Andante', 'Acento'], // Acento ya cubierto, pero lo mantengo
+                    other: ['Instrumentos de la orquesta', 'Lectura rítmica (pulso/ritmo)', 'Primera y segunda terminación'] // Añadido del PDF
+                },
+                '3rd-4th-grade': {
+                    label: '3ro/4to Básico (8-10 años)',
+                    rhythm: ['Compás en 4', 'Semicorcheas (galopa, etc.)', 'Blanca con punto', 'Compás en 3', 'Anacrusa', 'Tresillo', 'Silencio de corchea'], // Ajustado y añadido del PDF
+                    melody: ['Escalas diatónicas', 'Escala pentatónica de La-Re y Mi La grave', 'Sol grave', 'Fa', 'Si', 'Escala menor de La. Hexatónica', 'Modos (mayor/menor)', 'Armonía a 2 partes', 'Cánones'], // Ajustado y añadido del PDF
+                    form: ['Rondó', 'Tema y Variaciones'],
+                    texture: ['Bordón', 'Cánones', 'Armonía a 2 partes', 'Cantos a más de dos voces', 'Acordes de Tónica y Dominante', 'Bordón arpegiado', 'Armonía a 2 partes y contra'], // Ajustado y añadido del PDF
+                    expression: ['Allegro', 'Andante', 'Moderato', 'Mezzo-forte', 'Mezzo-piano', 'Legato/Staccato', 'Fraseo'], // Ajustado y añadido del PDF
+                    other: ['Clave de Sol', 'Llave de Fa?', 'Géneros musicales', 'Instrumentos de la orquesta'] // Ajustado y añadido del PDF
+                },
+                '5th-grade': {
+                    label: '5to Básico (10-11 años)',
+                    rhythm: ['Compases compuestos (6/8, 9/8, 12/8)', 'Patrones rítmicos complejos', 'Cortar el tiempo'], // Ajustado y añadido del PDF
+                    melody: ['Clave de Sol', 'Escala mayor', 'Secuencia', 'Dorio/Mixolidio/Frigio/Lidio', 'Acordes (Tónica, Dominante, Subdominante)', 'Armonía funcional', 'Inversiones de acordes'], // Ajustado y añadido del PDF
+                    form: ['Sonata', 'Fuga (introducción)', 'Tema y Variaciones', 'Chacona'], // Añadido del PDF
+                    texture: ['Armonía a 2+ partes', 'Acordes', 'Armonía funcional'], // 'Armonía funcional' es más general
+                    expression: ['Rubato', 'Dinámicas más sutiles', 'Da capo; al inicio'], // Ajustado y añadido del PDF
+                    other: ['Signos de repetición', 'Líneas de compás', 'Dictado musical', 'Análisis de obras', 'Grados de escala'] // Ajustado y añadido del PDF
+                }
+            };
+
+            // Distribución de tiempo porcentual para cada sección
+            const timeDistributionPercentages = {
+                'welcome': 0.10, // Bienvenida y Calentamiento
+                'rhythm': 0.15, // Desarrollo Rítmico
+                'melody': 0.15, // Desarrollo Melódico y Vocal
+                'instrumental': 0.20, // Exploración Instrumental
+                'movement': 0.15, // Movimiento y Expresión
+                'creative': 0.10, // Actividad Creativa / Improvisación
+                'listening': 0.10, // Escucha Activa y Apreciación
+                'closing': 0.05  // Cierre y Relajación
+            };
+
+            // Gemini API configuration
+            const API_KEY = ""; // Canvas will provide this in runtime
+            const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+
+            /**
+             * Calls the Gemini API to generate content.
+             * @param {string} prompt The prompt for the LLM.
+             * @returns {Promise<string>} The generated text.
+             */
+            async function callGeminiAPI(prompt) {
+                const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+
+                try {
+                    const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        return result.candidates[0].content.parts[0].text;
+                    } else {
+                        console.error("Unexpected API response structure:", result);
+                        return "No se pudo generar la sugerencia. Inténtalo de nuevo.";
+                    }
+                } catch (error) {
+                    console.error("Error calling Gemini API:", error);
+                    return "Error al conectar con la IA. Por favor, revisa tu conexión.";
+                }
+            }
+
+            /**
+             * Generates LLM content and displays it.
+             * @param {string} sectionKey The key for the current section (e.g., 'rhythm').
+             * @param {string} ageRange The selected age range key.
+             * @param {'activity' | 'assessment'} type The type of content to generate.
+             * @param {object} currentCurriculum The curriculum object for the selected age range.
+             */
+            async function generateLLMContent(sectionKey, ageRange, type, currentCurriculum) {
+                const sectionNameMap = {
+                    'welcome': 'Bienvenida y Calentamiento',
+                    'rhythm': 'Desarrollo Rítmico',
+                    'melody': 'Desarrollo Melódico y Vocal',
+                    'instrumental': 'Exploración Instrumental',
+                    'movement': 'Movimiento y Expresión',
+                    'creative': 'Actividad Creativa / Improvisación / Composición Elemental',
+                    'listening': 'Escucha Activa y Apreciación / "Otro"',
+                    'closing': 'Cierre y Relajación'
+                };
+
+                const sectionElementName = sectionKey; // Corresponds to the section in HTML
+                const sectionContentDiv = document.getElementById(`${sectionElementName}-llm-output-${type}`);
+                const ageLabel = currentCurriculum.label;
+                const sectionDisplayTitle = sectionNameMap[sectionKey];
+
+                if (!sectionContentDiv) {
+                    console.error(`Output div not found for section: ${sectionElementName}, type: ${type}`);
+                    return;
+                }
+
+                sectionContentDiv.innerHTML = '<div class="llm-loading">Cargando sugerencia...</div>';
+
+                let prompt = "";
+                const relevantCurriculumConcepts = Object.values(currentCurriculum)
+                                                .filter(Array.isArray)
+                                                .flat()
+                                                .join(', '); // Get all concepts for the age
+
+                if (type === 'activity') {
+                    prompt = `Eres un experto diseñador curricular de educación musical con profundos conocimientos en metodologías activas (Orff Schulwerk, Kodály, Dalcroze Eurhythmics, Music Learning Theory de Gordon). Dada la edad del grupo (${ageLabel}) y la sección del plan de clase "${sectionDisplayTitle}", genera UNA actividad adicional creativa y práctica que integre conceptos clave de las metodologías mencionadas y que esté alineada con el currículum de este nivel. Los conceptos clave del currículum para esta sección son: ${relevantCurriculumConcepts}. No uses introducciones ni conclusiones, solo la descripción de la actividad.`;
+                } else if (type === 'assessment') {
+                    prompt = `Eres un experto diseñador curricular de educación musical. Dada la edad del grupo (${ageLabel}) y la sección del plan de clase "${sectionDisplayTitle}", sugiere UNA idea de evaluación FORMATIVA simple y práctica para esta sección. Debe estar alineada con los conceptos clave del currículum para esta sección: ${relevantCurriculumConcepts}. No uses introducciones ni conclusiones, solo la descripción de la idea de evaluación.`;
+                }
+
+                const generatedText = await callGeminiAPI(prompt);
+                sectionContentDiv.innerHTML = `<div class="llm-suggestion">${generatedText}</div>`;
+            }
+
+            generatePlanBtn.addEventListener('click', () => {
+                const ageRange = ageRangeSelect.value;
+                const duration = parseInt(classDurationSelect.value);
+                const currentCurriculum = curriculum[ageRange];
+                const ageLabel = curriculum[ageRange].label;
+
+                // Calcular el tiempo asignado a cada sección
+                const sectionTimes = {};
+                for (const section in timeDistributionPercentages) {
+                    sectionTimes[section] = Math.round(duration * timeDistributionPercentages[section]);
+                }
+
+                let htmlContent = `
+                    <h2 class="text-2xl font-bold mb-4 text-center">Plan de Clase: Música para ${ageLabel} (${duration} minutos)</h2>
+                    <p class="text-md mb-6 text-gray-600 italic text-center">Este es un plan flexible. ¡Adapta las actividades y el tiempo según las necesidades de tu grupo!</p>
+                `;
+
+                // Common HTML structure for sections
+                const sectionTemplate = (sectionKey, title, time, contentHtml, curriculumConcepts) => `
+                    <div class="lesson-section section-${sectionKey}" id="${sectionKey}-section">
+                        <h3>${title} <span class="text-sm font-normal ml-2">(${time} min)</span></h3>
+                        <div class="section-content">
+                            ${contentHtml}
+                            <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                                <button class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-all duration-200 ease-in-out" data-section="${sectionKey}" data-type="activity">
+                                    ✨ Sugerir Actividad Adicional
+                                </button>
+                                <button class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-all duration-200 ease-in-out" data-section="${sectionKey}" data-type="assessment">
+                                    ✨ Sugerir Idea de Evaluación
+                                </button>
+                            </div>
+                            <div id="${sectionKey}-llm-output-activity" class="llm-suggestion hidden mt-3"></div>
+                            <div id="${sectionKey}-llm-output-assessment" class="llm-suggestion hidden mt-3"></div>
+                        </div>
+                    </div>
+                `;
+
+                // 1. Objetivos de Aprendizaje Clave (no tiene botones LLM)
+                htmlContent += `
+                    <div class="lesson-section section-warmup">
+                        <h3>Objetivos de Aprendizaje Clave <span class="text-sm font-normal ml-2">(Enfoque General)</span></h3>
+                        <div class="section-content">
+                            <ul class="list-disc ml-6">
+                                <li>Desarrollar la sensibilidad auditiva y el reconocimiento de elementos musicales básicos.</li>
+                                <li>Fomentar la expresión a través de la voz, el cuerpo y los instrumentos.</li>
+                                <li>Explorar conceptos rítmicos y melódicos de forma activa y lúdica.</li>
+                                <li>Estimular la creatividad y la improvisación musical.</li>
+                                <li>Promover la interacción grupal y el disfrute de la música.</li>
+                                <li>Integrar conceptos clave del currículum como: ${Object.values(currentCurriculum).filter(Array.isArray).flat().map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+
+                // 2. Materiales Necesarios (no tiene botones LLM)
+                htmlContent += `
+                    <div class="lesson-section section-rhythm">
+                        <h3>Materiales Necesarios <span class="text-sm font-normal ml-2">(Sugerencias)</span></h3>
+                        <div class="section-content">
+                            <ul class="list-disc ml-6">
+                                <li>Instrumentos de percusión menor (claves, maracas, panderos, triángulos).</li>
+                                <li>Instrumentos Orff (xilófonos, metalófonos, glockenspiels).</li>
+                                <li>Pañuelos, pelotas pequeñas, aros (para movimiento).</li>
+                                <li>Pizarrón o papelógrafo.</li>
+                                <li>Reproductor de audio y parlantes.</li>
+                                <li>Tarjetas con figuras rítmicas (opcional, relacionadas con: ${currentCurriculum.rhythm.map(c => `<span class="concept-tag">${c}</span>`).join('')}).</li>
+                                <li>Libros de canciones infantiles o folclóricas (que contengan: ${currentCurriculum.melody.map(c => `<span class="concept-tag">${c}</span>`).join('')}).</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+
+                // 3. Desarrollo de la Clase (con tiempos aproximados)
+                // a. Bienvenida y Calentamiento
+                htmlContent += sectionTemplate(
+                    'welcome',
+                    'a. Bienvenida y Calentamiento (Voz, Cuerpo, Oído)',
+                    sectionTimes['welcome'],
+                    `
+                    <ul class="list-disc ml-6">
+                        <li><strong>Canción de saludo:</strong> "Hola, hola, ¿cómo estás?" o similar. Los alumnos se saludan con un gesto o movimiento.</li>
+                        <li><strong>Preparación Vocal y Corporal (Dalcroze, Kodály):</strong>
+                            <ul>
+                                <li>Caminar al pulso de la música, cambiando de dirección o nivel (Dalcroze).</li>
+                                <li>Juego de eco de vocalizaciones con sílabas (ej: "Maa-mee-moo") para explorar <strong>${currentCurriculum.melody.includes('Agudo/Grave') ? 'Agudo/Grave' : 'el rango vocal'}</strong>.</li>
+                                <li>Imitar sonidos de animales con la voz, explorando diferentes timbres.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Juegos de eco rítmico (Kodály, Gordon):</strong> El profesor palmotea un patrón rítmico simple y los alumnos repiten.
+                            <span class="methodology-note">💡 Sugerencia: Inicia con patrones básicos como el <strong>${currentCurriculum.rhythm.includes('Pulso') ? 'pulso' : 'ritmo'}</strong> o el <strong>${currentCurriculum.rhythm.includes('Negra') ? 'ritmo de negra' : 'ritmo simple'}</strong>, incorporando: ${currentCurriculum.rhythm.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</span>
+                        </li>
+                    </ul>
+                    `,
+                    currentCurriculum.rhythm.concat(currentCurriculum.melody).join(', ')
+                );
+
+                // b. Desarrollo Rítmico
+                htmlContent += sectionTemplate(
+                    'rhythm',
+                    'b. Desarrollo Rítmico',
+                    sectionTimes['rhythm'],
+                    `
+                    <ul class="list-disc ml-6">
+                        <li><strong>Exploración del Pulso y Ritmo (Kodály):</strong>
+                            <ul>
+                                <li>Caminar, marchar o aplaudir el pulso de una canción conocida.</li>
+                                <li>Crear patrones rítmicos con sílabas rítmicas (ej: 'Ta' para negra, 'Ti-ti' para corcheas). Conceptos clave: ${currentCurriculum.rhythm.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Percusión Corporal y Ostinatos (Orff):</strong>
+                            <ul>
+                                <li>Experimentar con diferentes sonidos corporales (palmas, rodillas, pies).</li>
+                                <li>Crear un ostinato rítmico simple en grupo con percusión corporal o instrumentos de percusión menor.
+                                    <span class="methodology-note">💡 Sugerencia: Si aplica, introducir el concepto de <strong>${currentCurriculum.texture.includes('Ostinato') ? 'ostinato' : 'repetición'}</strong>.</span>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><strong>Juego rítmico con improvisación (Gordon):</strong> Un alumno o el profesor propone un patrón rítmico corto, y los demás lo improvisan con variaciones usando la voz o pequeños instrumentos, aplicando: ${currentCurriculum.rhythm.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                    </ul>
+                    `,
+                    currentCurriculum.rhythm.join(', ')
+                );
+
+                // c. Desarrollo Melódico y Vocal
+                htmlContent += sectionTemplate(
+                    'melody',
+                    'c. Desarrollo Melódico y Vocal',
+                    sectionTimes['melody'],
+                    `
+                    <ul class="list-disc ml-6">
+                        <li><strong>Trabajo con canciones (Kodály):</strong>
+                            <ul>
+                                <li>Aprender una canción nueva (ej: del repertorio folclórico o infantil) usando gestos manuales Kodály para los grados de la escala (ej: ${currentCurriculum.melody.includes('Sol-Mi') ? 'Sol-Mi' : 'Sol-Mi-La'}).</li>
+                                <li>Cantar la canción afinado, prestando atención a la dirección melódica (Agudo/Grave). Conceptos clave: ${currentCurriculum.melody.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Improvisación melódica (Orff, Gordon):</strong>
+                            <ul>
+                                <li>Sobre un bordón sencillo (ej: Do-Sol), los alumnos improvisan pequeñas frases melódicas vocalmente o con un instrumento melódico Orff (xilófono), explorando: ${currentCurriculum.melody.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                                <li>Juego de pregunta-respuesta melódica.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Reconocimiento melódico:</strong> Cantar una frase y pedir a los alumnos que la identifiquen o la representen con gestos.</li>
+                    </ul>
+                    `,
+                    currentCurriculum.melody.join(', ')
+                );
+
+                // d. Exploración Instrumental
+                htmlContent += sectionTemplate(
+                    'instrumental',
+                    'd. Exploración Instrumental (Enfoque Orff y otros)',
+                    sectionTimes['instrumental'],
+                    `
+                    <ul class="list-disc ml-6">
+                        <li><strong>Introducción a instrumentos Orff:</strong>
+                            <ul>
+                                <li>Explorar los xilófonos, metalófonos y glockenspiels. Conocer sus nombres y cómo se tocan.</li>
+                                <li>Tocar bordones sencillos o ostinatos melódicos sobre una canción. Conceptos clave: ${currentCurriculum.texture.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Creación de acompañamientos:</strong> Dividir la clase en grupos, algunos cantan la melodía, otros tocan un ostinato rítmico, y otros un bordón melódico. Explorar la <strong>Textura</strong> (${currentCurriculum.texture.includes('Solo/Grupo') ? 'Solo/Grupo' : 'interacción grupal'}).</li>
+                        <li><strong>Combinación metodológica:</strong>
+                            <span class="methodology-note">💡 Comenzar con una canción Kodály para internalizar la melodía (Sol-Mi), luego transferirla a los xilófonos Orff y añadir un bordón. Finalmente, crear un movimiento Dalcroze que represente la frase melódica, aplicando: ${currentCurriculum.texture.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</span>
+                        </li>
+                        <li><strong>Improvisación con instrumentos:</strong> Dar la oportunidad de que los alumnos improvise con algunos instrumentos Orff (manteniendo la pentatónica para facilitar la improvisación).</li>
+                    </ul>
+                    `,
+                    currentCurriculum.texture.join(', ')
+                );
+
+                // e. Movimiento y Expresión
+                htmlContent += sectionTemplate(
+                    'movement',
+                    'e. Movimiento y Expresión (Enfoque Dalcroze y Orff)',
+                    sectionTimes['movement'],
+                    `
+                    <ul class="list-disc ml-6">
+                        <li><strong>Movimiento libre y guiado (Dalcroze):</strong>
+                            <ul>
+                                <li>Escuchar una pieza musical corta y expresar con el cuerpo el <strong>tempo</strong> (lento/rápido), <strong>dinámicas</strong> (forte/piano), y el <strong>fraseo</strong>. Conceptos clave: ${currentCurriculum.expression.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                                <li>Caminar o correr libremente por el espacio según el pulso de la música, y "congelarse" al silencio.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Juegos de movimiento que refuerzan conceptos:</strong>
+                            <ul>
+                                <li>Juego de "estatua rítmica": al detenerse la música, los alumnos deben congelarse en una posición que represente un ritmo o una forma (ej: ${currentCurriculum.form.includes('AA') ? 'AA' : 'Igual/Diferente'}).</li>
+                                <li>Representar con el cuerpo la forma de una canción (ej: sección A con un movimiento, sección B con otro). Conceptos clave: ${currentCurriculum.form.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    `,
+                    currentCurriculum.expression.concat(currentCurriculum.form).join(', ')
+                );
+
+                // f. Actividad Creativa / Improvisación / Composición Elemental
+                htmlContent += sectionTemplate(
+                    'creative',
+                    'f. Actividad Creativa / Improvisación / Composición Elemental',
+                    sectionTimes['creative'],
+                    `
+                    <ul class="list-disc ml-6">
+                        <li><strong>Creación de patrones (Gordon, Orff):</strong>
+                            <ul>
+                                <li>En parejas o pequeños grupos, crear una frase rítmica corta usando sílabas rítmicas o percusión corporal, y luego enseñarla al resto de la clase, aplicando: ${currentCurriculum.rhythm.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                                <li>Composición elemental de melodías simples en los xilófonos (usando 2-3 notas del repertorio aprendido), explorando: ${currentCurriculum.melody.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Improvisación vocal o instrumental:</strong> Sobre un acompañamiento simple (profesor al piano, guitarra, o un bordón Orff), invitar a los alumnos a improvisar una melodía o un patrón rítmico.</li>
+                        <li><strong>Combinación metodológica:</strong>
+                            <span class="methodology-note">💡 Explorar un patrón rítmico con sílabas Kodály, luego con percusión corporal, después improvisar variaciones sobre ese patrón usando la voz (Gordon) y luego instrumentos Orff.</span>
+                        </li>
+                    </ul>
+                    `,
+                    currentCurriculum.rhythm.concat(currentCurriculum.melody).join(', ')
+                );
+
+                // g. Escucha Activa y Apreciación / "Otro"
+                htmlContent += sectionTemplate(
+                    'listening',
+                    'g. Escucha Activa y Apreciación / "Otro"',
+                    sectionTimes['listening'],
+                    `
+                    <ul class="list-disc ml-6">
+                        <li><strong>Audición guiada:</strong> Escuchar una pieza musical corta (ej: "Carnaval de los Animales" de Saint-Saëns para identificar instrumentos).
+                            <ul>
+                                <li>Identificar instrumentos (ej: <strong>${currentCurriculum.other.includes('Instrumentos de la orquesta') ? 'instrumentos de la orquesta' : 'percusión de altura indeterminada'}</strong>).</li>
+                                <li>Identificar la <strong>Forma</strong> (ej: "Esta sección es igual a la primera, esta es diferente"). Conceptos clave: ${currentCurriculum.form.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Introducción a la teoría y notación (según edad):</strong>
+                            <ul>
+                                <li>Mostrar una negra o una corchea en el pizarrón y relacionarla con el sonido o gesto ya aprendido.</li>
+                                <li>Si aplica, introducción visual de la <strong>${currentCurriculum.other.includes('Clave de Sol') ? 'Clave de Sol' : 'signos de repetición'}</strong>, así como: ${currentCurriculum.other.map(c => `<span class="concept-tag">${c}</span>`).join('')}.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    `,
+                    currentCurriculum.other.concat(currentCurriculum.form).join(', ')
+                );
+
+                // h. Cierre y Relajación
+                htmlContent += sectionTemplate(
+                    'closing',
+                    'h. Cierre y Relajación',
+                    sectionTimes['closing'],
+                    `
+                    <ul class="list-disc ml-6">
+                        <li><strong>Canción de despedida:</strong> Cantar una canción tranquila que señale el final de la clase.</li>
+                        <li><strong>Reflexión breve:</strong> Pedir a los alumnos que nombren una cosa que aprendieron o disfrutaron de la clase.</li>
+                        <li><strong>Respiración y estiramientos:</strong> Ejercicios suaves de respiración para volver a la calma.</li>
+                    </ul>
+                    `,
+                    '' // No specific curriculum concepts directly tied to closing for LLM
+                );
+
+
+                lessonPlanOutput.innerHTML = htmlContent;
+                lessonPlanOutput.classList.remove('hidden');
+
+                // Attach event listeners to the new LLM buttons
+                document.querySelectorAll('#lessonPlanOutput button[data-section]').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const sectionKey = event.target.dataset.section;
+                        const type = event.target.dataset.type; // 'activity' or 'assessment'
+                        const outputDiv = document.getElementById(`${sectionKey}-llm-output-${type}`);
+                        outputDiv.classList.remove('hidden'); // Show the div
+
+                        // Call the LLM generation function
+                        generateLLMContent(sectionKey, ageRange, type, currentCurriculum);
+                    });
+                });
+            });
+
+            // Trigger click on page load to show an initial plan
+            generatePlanBtn.click();
+        });
+    </script>
+</body>
+</html>
